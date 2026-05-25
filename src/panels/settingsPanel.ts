@@ -149,67 +149,138 @@ export class SettingsPanel {
 <title>Mimi Settings</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;background:#f0f4f8;color:#1e293b;min-height:100vh;display:flex;flex-direction:column}
+html,body{height:100%;overflow-x:hidden}
+body{
+  font-family:var(--vscode-font-family,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif);
+  font-size:var(--vscode-font-size,13px);
+  background:var(--vscode-editor-background);
+  color:var(--vscode-editor-foreground);
+  min-height:100vh;display:flex;flex-direction:column;
+}
 
 /* ── Page ── */
-.page{flex:1;padding:24px 28px 0;overflow-y:auto}
+.page{flex:1;padding:20px 22px 0;overflow-y:auto;max-width:640px;width:100%}
 
 /* ── Accordion ── */
-.accordion{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden;margin-bottom:20px}
-.acc-header{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;user-select:none;border-left:4px solid #0078D4}
-.acc-icon{font-size:16px;color:#0078D4}
-.acc-title{font-size:15px;font-weight:600;flex:1;color:#0f172a}
-.acc-chevron{color:#0078D4;font-size:13px;transition:transform .2s}
+.accordion{
+  background:var(--vscode-editorWidget-background,var(--vscode-editor-background));
+  border:1px solid var(--vscode-panel-border,var(--vscode-widget-border,#444));
+  border-radius:4px;overflow:hidden;margin-bottom:16px;
+}
+.acc-header{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  cursor:pointer;user-select:none;
+  border-left:3px solid var(--vscode-focusBorder,var(--vscode-textLink-foreground,#0078D4));
+}
+.acc-icon{font-size:15px;color:var(--vscode-textLink-foreground,#0078D4)}
+.acc-title{font-size:14px;font-weight:600;flex:1;color:var(--vscode-editor-foreground)}
+.acc-chevron{color:var(--vscode-textLink-foreground,#0078D4);font-size:12px;transition:transform .2s}
 .acc-header.collapsed .acc-chevron{transform:rotate(-90deg)}
-.acc-body{border-top:1px solid #f1f5f9}
+.acc-body{border-top:1px solid var(--vscode-panel-border,var(--vscode-widget-border,#444))}
 
 /* ── Email row ── */
-.email-row{display:flex;align-items:center;padding:14px 18px;gap:16px;border-bottom:1px solid #f1f5f9}
-.email-row label{font-size:13px;font-weight:500;color:#334155;white-space:nowrap;min-width:130px}
-.email-row input{flex:1;max-width:340px;border:1px solid #e2e8f0;border-radius:6px;padding:7px 11px;font-size:13px;color:#1e293b;outline:none;font-family:inherit;transition:border-color .15s}
-.email-row input:focus{border-color:#0078D4;box-shadow:0 0 0 2px rgba(0,120,212,.15)}
+.email-row{
+  display:flex;align-items:center;padding:12px 16px;gap:14px;flex-wrap:wrap;
+  border-bottom:1px solid var(--vscode-panel-border,var(--vscode-widget-border,#444));
+}
+.email-row label{font-size:12px;font-weight:500;color:var(--vscode-editor-foreground);white-space:nowrap;min-width:120px}
+.email-row input{
+  flex:1;min-width:160px;max-width:340px;
+  background:var(--vscode-input-background);
+  color:var(--vscode-input-foreground);
+  border:1px solid var(--vscode-input-border,var(--vscode-widget-border,#444));
+  border-radius:2px;padding:5px 9px;font-size:12px;outline:none;font-family:inherit;
+  transition:border-color .12s;
+}
+.email-row input:focus{border-color:var(--vscode-focusBorder,#0078D4)}
 
 /* ── Service tabs ── */
-.svc-tabs{display:flex;gap:0;padding:0 18px;border-bottom:1px solid #e2e8f0}
-.svc-tab{padding:10px 16px;font-size:12px;font-weight:600;letter-spacing:.5px;cursor:pointer;background:transparent;border:none;color:#94a3b8;border-bottom:2px solid transparent;font-family:inherit;transition:color .12s,border-color .12s}
-.svc-tab.active{color:#0078D4;border-bottom-color:#0078D4}
-.svc-tab:not(.active):hover{color:#334155}
+.svc-tabs{
+  display:flex;padding:0 16px;
+  border-bottom:1px solid var(--vscode-panel-border,var(--vscode-widget-border,#444));
+}
+.svc-tab{
+  padding:9px 14px;font-size:11px;font-weight:600;letter-spacing:.5px;
+  cursor:pointer;background:transparent;border:none;
+  color:var(--vscode-tab-inactiveForeground,var(--vscode-descriptionForeground));
+  border-bottom:2px solid transparent;font-family:inherit;transition:color .12s,border-color .12s;
+}
+.svc-tab.active{color:var(--vscode-tab-activeForeground,var(--vscode-editor-foreground));border-bottom-color:var(--vscode-focusBorder,var(--vscode-textLink-foreground,#0078D4))}
+.svc-tab:not(.active):hover{color:var(--vscode-editor-foreground);background:var(--vscode-list-hoverBackground)}
 
 /* ── Service form ── */
-.svc-form{padding:0 18px}
-.field-row{display:flex;align-items:flex-start;padding:14px 0;gap:16px;border-bottom:1px solid #f1f5f9}
-.field-meta{min-width:200px;flex:0 0 200px}
-.field-label{font-size:13px;font-weight:500;color:#334155;margin-bottom:3px}
-.field-hint{font-size:11px;color:#94a3b8}
-.field-hint a{color:#0078D4;text-decoration:none}
+.svc-form{padding:0 16px}
+.field-row{
+  display:flex;align-items:flex-start;padding:12px 0;gap:14px;flex-wrap:wrap;
+  border-bottom:1px solid var(--vscode-panel-border,var(--vscode-widget-border,#444));
+}
+.field-meta{min-width:170px;flex:0 0 170px}
+.field-label{font-size:12px;font-weight:500;color:var(--vscode-editor-foreground);margin-bottom:3px}
+.field-hint{font-size:11px;color:var(--vscode-descriptionForeground)}
+.field-hint a{color:var(--vscode-textLink-foreground,#0078D4);text-decoration:none}
 .field-hint a:hover{text-decoration:underline}
-.field-input{flex:1;max-width:320px;border:1px solid #e2e8f0;border-radius:6px;padding:7px 11px;font-size:13px;color:#1e293b;outline:none;font-family:inherit;transition:border-color .15s}
-.field-input:focus{border-color:#0078D4;box-shadow:0 0 0 2px rgba(0,120,212,.15)}
+.field-input{
+  flex:1;min-width:160px;max-width:300px;
+  background:var(--vscode-input-background);
+  color:var(--vscode-input-foreground);
+  border:1px solid var(--vscode-input-border,var(--vscode-widget-border,#444));
+  border-radius:2px;padding:5px 9px;font-size:12px;outline:none;font-family:inherit;
+  transition:border-color .12s;
+}
+.field-input:focus{border-color:var(--vscode-focusBorder,#0078D4)}
 
 /* ── Verify row ── */
-.verify-row{display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:14px 0 16px}
+.verify-row{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:12px 0 14px;flex-wrap:wrap}
 .verify-status{font-size:12px;font-weight:500;flex:1}
-.verify-status.ok{color:#16a34a}
-.verify-status.fail{color:#dc2626}
-.verify-status.checking{color:#94a3b8}
+.verify-status.ok{color:var(--vscode-terminal-ansiGreen,#89d185)}
+.verify-status.fail{color:var(--vscode-editorError-foreground,#f14c4c)}
+.verify-status.checking{color:var(--vscode-descriptionForeground)}
 
 /* ── Buttons ── */
-.btn{cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;border-radius:20px;padding:7px 18px;display:inline-flex;align-items:center;gap:5px;border:none;transition:background .12s,opacity .12s}
-.btn-primary{background:#0078D4;color:#fff}
-.btn-primary:hover{background:#0066b3}
-.btn-primary:disabled{opacity:.55;cursor:not-allowed}
-.btn-outline{background:#fff;border:1px solid #cbd5e1;color:#334155}
-.btn-outline:hover{background:#f8fafc}
+.btn{
+  cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;
+  border-radius:2px;padding:6px 16px;
+  display:inline-flex;align-items:center;gap:5px;
+  transition:background .12s,opacity .12s;
+}
+.btn-primary{
+  background:var(--vscode-button-background);
+  color:var(--vscode-button-foreground);
+  border:none;
+}
+.btn-primary:hover{background:var(--vscode-button-hoverBackground,var(--vscode-button-background));opacity:.9}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{
+  background:transparent;
+  color:var(--vscode-editor-foreground);
+  border:1px solid var(--vscode-button-border,var(--vscode-panel-border,var(--vscode-widget-border,#555)));
+}
+.btn-outline:hover{background:var(--vscode-list-hoverBackground)}
 
 /* ── Coming soon ── */
-.coming-soon{padding:32px 18px;text-align:center;color:#94a3b8;font-size:13px}
+.coming-soon{padding:28px 16px;text-align:center;color:var(--vscode-descriptionForeground);font-size:12px}
 
 /* ── Footer ── */
-.footer{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:14px 28px;background:#fff;border-top:1px solid #e2e8f0;position:sticky;bottom:0}
+.footer{
+  display:flex;justify-content:flex-end;align-items:center;gap:10px;
+  padding:12px 22px;
+  background:var(--vscode-editorGroupHeader-tabsBackground,var(--vscode-editor-background));
+  border-top:1px solid var(--vscode-panel-border,var(--vscode-widget-border,#444));
+  position:sticky;bottom:0;
+}
 
 /* ── Toast ── */
-.toast{position:fixed;bottom:70px;right:24px;background:#16a34a;color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:opacity .3s}
+.toast{
+  position:fixed;bottom:64px;right:20px;
+  background:var(--vscode-terminal-ansiGreen,#89d185);
+  color:var(--vscode-editor-background,#1e1e1e);
+  padding:6px 14px;border-radius:3px;
+  font-size:11px;font-weight:600;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+  transition:opacity .3s;
+}
 .toast.hidden{opacity:0;pointer-events:none}
+.hidden{display:none!important}
 </style>
 </head>
 <body>

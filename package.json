@@ -1,0 +1,55 @@
+{
+  "name": "atlassian-agent",
+  "displayName": "Mimi Assistant",
+  "description": "A VS Code Chat Participant (@mimi) that integrates Jira and Confluence via GitHub Copilot.",
+  "version": "0.0.1",
+  "publisher": "atlassian-agent-dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atlassian-agent-dev/atlassian-agent"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "icon": "images/icon.png",
+  "categories": ["AI", "Other"],
+  "extensionDependencies": [
+    "github.copilot-chat"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "atlassianAgent.atlassian",
+        "name": "mimi",
+        "fullName": "Mimi Assistant",
+        "description": "Interact with Jira tickets and Confluence documentation using natural language.",
+        "isSticky": true
+      }
+    ],
+    "commands": [
+      {
+        "command": "atlassianAgent.login",
+        "title": "Mimi Assistant: Configure Credentials"
+      },
+      {
+        "command": "atlassianAgent.logout",
+        "title": "Mimi Assistant: Clear Credentials"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}

@@ -21,6 +21,24 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mimi-sidebar",
+          "title": "Mimi Assistant",
+          "icon": "images/icon-sidebar.svg"
+        }
+      ]
+    },
+    "views": {
+      "mimi-sidebar": [
+        {
+          "type": "webview",
+          "id": "mimiAssistant.sidebar",
+          "name": "Mimi Assistant"
+        }
+      ]
+    },
     "chatParticipants": [
       {
         "id": "atlassianAgent.atlassian",
@@ -38,6 +56,14 @@
       {
         "command": "atlassianAgent.logout",
         "title": "Mimi Assistant: Clear Credentials"
+      },
+      {
+        "command": "atlassianAgent.openDashboard",
+        "title": "Mimi Assistant: Open Issue Dashboard"
+      },
+      {
+        "command": "atlassianAgent.openSettings",
+        "title": "Mimi Assistant: Open Settings"
       }
     ]
   },

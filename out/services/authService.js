@@ -149,6 +149,13 @@ class AuthManager {
         await Promise.all(service.fields.map((f) => this.secrets.delete(this.storageKey(serviceId, f.key))));
     }
     /**
+     * Directly stores a map of field-key → value for a service.
+     * Useful for UI panels that collect all fields at once.
+     */
+    async storeCredentials(serviceId, values) {
+        await Promise.all(Object.entries(values).map(([key, value]) => this.secrets.store(this.storageKey(serviceId, key), value)));
+    }
+    /**
      * Clears credentials for every registered service.
      */
     async clearAllCredentials() {
@@ -180,4 +187,4 @@ class AuthManager {
     }
 }
 exports.AuthManager = AuthManager;
-//# sourceMappingURL=auth.js.map
+//# sourceMappingURL=authService.js.map

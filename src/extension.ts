@@ -1,22 +1,46 @@
 import * as vscode from 'vscode';
-import { AuthManager } from './auth';
+import { AuthManager } from './services/authService';
 import { createChatHandler } from './chatHandler';
+import { DashboardPanel } from './panels/dashboardPanel';
+import { SettingsPanel } from './panels/settingsPanel';
+import { SidebarProvider } from './panels/sidebarProvider';
 
 export function activate(context: vscode.ExtensionContext): void {
   const authManager = new AuthManager(context.secrets);
+
+  // ── Sidebar WebView ──────────────────────────────────────────────────────
+
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      SidebarProvider.viewType,
+      new SidebarProvider(context.extensionUri)
+    )
+  );
 
   // ── Commands ────────────────────────────────────────────────────────────
 
   context.subscriptions.push(
     vscode.commands.registerCommand('atlassianAgent.login', async () => {
-      await authManager.setupCredentials();
+      await authManager.setupCredentials('atlassian');
     })
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand('atlassianAgent.logout', async () => {
-      await authManager.clearCredentials();
+      await authManager.clearCredentials('atlassian');
         vscode.window.showInformationMessage('Mimi Assistant: credentials cleared.');
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('atlassianAgent.openDashboard', () => {
+      DashboardPanel.createOrShow(context, authManager);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('atlassianAgent.openSettings', () => {
+      SettingsPanel.createOrShow(context, authManager);
     })
   );
 

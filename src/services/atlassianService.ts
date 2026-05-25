@@ -1,4 +1,4 @@
-import { AtlassianCredentials } from './auth';
+import { AtlassianCredentials } from './authService';
 
 // ─── Jira types ──────────────────────────────────────────────────────────────
 
@@ -10,9 +10,11 @@ interface AdfNode {
 
 interface JiraIssueFields {
   summary:   string;
-  status:    { name: string };
+  status:    { name: string; statusCategory?: { key: string } };
   assignee:  { displayName: string } | null;
   priority:  { name: string } | null;
+  issuetype?: { name: string };
+  resolution?: { name: string } | null;
   labels?:   string[];
   created?:  string;
   updated?:  string;
@@ -36,6 +38,24 @@ interface JiraSearchResult {
   total:  number;
 }
 
+// ─── Dashboard types ─────────────────────────────────────────────────────────
+
+export interface JiraIssueItem {
+  key:            string;
+  summary:        string;
+  status:         string;
+  statusCategory: string;
+  priority:       string;
+  type:           string;
+  assignee:       string;
+  resolution:     string;
+}
+
+export interface JiraCurrentUser {
+  displayName: string;
+  username:    string;
+}
+
 // ─── Confluence types ────────────────────────────────────────────────────────
 
 interface ConfluencePage {
@@ -57,7 +77,7 @@ interface ConfluenceSearchResult {
  * Thin wrapper around the Jira and Confluence v3 REST APIs.
  * All calls use Basic Auth with the stored PAT — no external SDKs needed.
  */
-export class AtlassianApiService {
+export class AtlassianService {
   private readonly baseUrl:    string;
   private readonly authHeader: string;
 
@@ -94,7 +114,6 @@ export class AtlassianApiService {
     if (node.type === 'text') return node.text ?? '';
     if (Array.isArray(node.content)) {
       const parts = node.content.map((c) => this.adfToText(c));
-      // Add line breaks after block-level nodes
       const sep = ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem'].includes(
         node.type ?? ''
       ) ? '\n' : '';
@@ -111,11 +130,8 @@ export class AtlassianApiService {
 
   /**
    * Searches Jira using a JQL query and returns a markdown summary table.
-   * @param jql     - A valid JQL query string (e.g. "project = DEV AND status = Open")
-   * @param maxResults - Maximum number of results (default 10)
    */
   async searchJiraIssues(jql: string, maxResults = 10): Promise<string> {
-    // Atlassian migrated from GET /rest/api/3/search to POST /rest/api/3/search/jql
     const data = await this.fetchJson<JiraSearchResult>(
       `${this.baseUrl}/rest/api/3/search/jql`,
       {
@@ -154,7 +170,6 @@ export class AtlassianApiService {
   /**
    * Retrieves full details for a single Jira issue, including description and
    * the three most recent comments.
-   * @param issueKey - The Jira issue key (e.g. "DEV-404")
    */
   async getIssueDetails(issueKey: string): Promise<string> {
     const params = new URLSearchParams({
@@ -197,9 +212,6 @@ export class AtlassianApiService {
 
   /**
    * Creates a new Jira issue of type "Task" in the given project.
-   * @param projectKey  - The Jira project key (e.g. "DEV")
-   * @param summary     - A one-line summary / title for the ticket
-   * @param description - The detailed description (plain text)
    */
   async createJiraIssue(
     projectKey:  string,
@@ -239,8 +251,6 @@ export class AtlassianApiService {
 
   /**
    * Searches Confluence using CQL and returns the top matching page snippets.
-   * @param query - A keyword or phrase to search for
-   * @param limit - Maximum pages to return (default 3)
    */
   async searchConfluence(query: string, limit = 3): Promise<string> {
     const safeQuery = query.replace(/"/g, '\\"');
@@ -273,5 +283,47 @@ export class AtlassianApiService {
     }
 
     return lines.join('\n');
+  }
+
+  // ── Dashboard: list issues ────────────────────────────────────────────────
+
+  async getIssuesList(jql: string, maxResults = 50): Promise<JiraIssueItem[]> {
+    const data = await this.fetchJson<JiraSearchResult>(
+      `${this.baseUrl}/rest/api/3/search/jql`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          jql,
+          maxResults,
+          fields: ['summary', 'status', 'assignee', 'priority', 'issuetype', 'resolution'],
+        }),
+      }
+    );
+
+    return data.issues.map((issue) => ({
+      key:            issue.key,
+      summary:        issue.fields.summary,
+      status:         issue.fields.status.name,
+      statusCategory: issue.fields.status.statusCategory?.key ?? 'new',
+      priority:       issue.fields.priority?.name  ?? 'None',
+      type:           issue.fields.issuetype?.name ?? 'Task',
+      assignee:       issue.fields.assignee?.displayName ?? 'Unassigned',
+      resolution:     issue.fields.resolution?.name ?? 'Unresolved',
+    }));
+  }
+
+  // ── Dashboard: verify credentials ────────────────────────────────────────
+
+  async verifyCredentials(): Promise<JiraCurrentUser> {
+    const data = await this.fetchJson<{
+      displayName: string;
+      name?:        string;
+      emailAddress?: string;
+    }>(`${this.baseUrl}/rest/api/3/myself`);
+
+    return {
+      displayName: data.displayName,
+      username:    data.name ?? data.emailAddress ?? '',
+    };
   }
 }

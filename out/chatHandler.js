@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createChatHandler = createChatHandler;
 const vscode = __importStar(require("vscode"));
-const atlassianApi_1 = require("./atlassianApi");
+const atlassianService_1 = require("./services/atlassianService");
 // ─── System prompt ────────────────────────────────────────────────────────────
 const SYSTEM_PROMPT = `\
 You are an expert Mimi assistant embedded inside VS Code. Your job is to help
@@ -169,19 +169,19 @@ async function executeTool(toolCall, api, stream) {
 function createChatHandler(authManager) {
     return async (request, context, stream, token) => {
         // ── 1. Ensure credentials are available ──────────────────────────────
-        let credentials = await authManager.getCredentials();
+        let credentials = await authManager.getCredentials('atlassian');
         if (!credentials) {
             stream.markdown('**Atlassian credentials not configured.**\n\n' +
                 'Please run the command **Mimi Assistant: Configure Credentials** to set your ' +
                 'Atlassian domain, e-mail, and Personal Access Token.');
             const choice = await vscode.window.showInformationMessage('Atlassian credentials are required.', 'Configure Now', 'Cancel');
             if (choice === 'Configure Now') {
-                credentials = await authManager.setupCredentials();
+                credentials = await authManager.setupCredentials('atlassian');
             }
             if (!credentials)
                 return;
         }
-        const api = new atlassianApi_1.AtlassianApiService(credentials);
+        const api = new atlassianService_1.AtlassianService(credentials);
         // ── 2. Select a Copilot language model ───────────────────────────────
         // Query without a family filter so any active Copilot model works
         // (gpt-4o, claude-sonnet, gemini-flash, etc.)

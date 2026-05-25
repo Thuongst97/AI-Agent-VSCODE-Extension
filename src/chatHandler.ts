@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { AuthManager } from './auth';
-import { AtlassianApiService } from './atlassianApi';
+import { AuthManager } from './services/authService';
+import { AtlassianService } from './services/atlassianService';
 
 // ─── System prompt ────────────────────────────────────────────────────────────
 
@@ -119,7 +119,7 @@ const ATLASSIAN_TOOLS: vscode.LanguageModelChatTool[] = [
 
 async function executeTool(
   toolCall: vscode.LanguageModelToolCallPart,
-  api:      AtlassianApiService,
+  api:      AtlassianService,
   stream:   vscode.ChatResponseStream
 ): Promise<string> {
   const args = toolCall.input as Record<string, string>;
@@ -158,7 +158,7 @@ export function createChatHandler(authManager: AuthManager): vscode.ChatRequestH
     token:   vscode.CancellationToken
   ) => {
     // ── 1. Ensure credentials are available ──────────────────────────────
-    let credentials = await authManager.getCredentials();
+    let credentials = await authManager.getCredentials('atlassian');
 
     if (!credentials) {
       stream.markdown(
@@ -173,12 +173,12 @@ export function createChatHandler(authManager: AuthManager): vscode.ChatRequestH
         'Cancel'
       );
       if (choice === 'Configure Now') {
-        credentials = await authManager.setupCredentials();
+        credentials = await authManager.setupCredentials('atlassian');
       }
       if (!credentials) return;
     }
 
-    const api = new AtlassianApiService(credentials);
+    const api = new AtlassianService(credentials as unknown as import('./services/authService').AtlassianCredentials);
 
     // ── 2. Select a Copilot language model ───────────────────────────────
     // Query without a family filter so any active Copilot model works

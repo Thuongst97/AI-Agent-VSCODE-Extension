@@ -36,17 +36,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
-const auth_1 = require("./auth");
+const authService_1 = require("./services/authService");
 const chatHandler_1 = require("./chatHandler");
+const dashboardPanel_1 = require("./panels/dashboardPanel");
+const settingsPanel_1 = require("./panels/settingsPanel");
+const sidebarProvider_1 = require("./panels/sidebarProvider");
 function activate(context) {
-    const authManager = new auth_1.AuthManager(context.secrets);
+    const authManager = new authService_1.AuthManager(context.secrets);
+    // ── Sidebar WebView ──────────────────────────────────────────────────────
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider(sidebarProvider_1.SidebarProvider.viewType, new sidebarProvider_1.SidebarProvider(context.extensionUri)));
     // ── Commands ────────────────────────────────────────────────────────────
     context.subscriptions.push(vscode.commands.registerCommand('atlassianAgent.login', async () => {
-        await authManager.setupCredentials();
+        await authManager.setupCredentials('atlassian');
     }));
     context.subscriptions.push(vscode.commands.registerCommand('atlassianAgent.logout', async () => {
-        await authManager.clearCredentials();
+        await authManager.clearCredentials('atlassian');
         vscode.window.showInformationMessage('Mimi Assistant: credentials cleared.');
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('atlassianAgent.openDashboard', () => {
+        dashboardPanel_1.DashboardPanel.createOrShow(context, authManager);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('atlassianAgent.openSettings', () => {
+        settingsPanel_1.SettingsPanel.createOrShow(context, authManager);
     }));
     // ── Chat participant ─────────────────────────────────────────────────────
     const handler = (0, chatHandler_1.createChatHandler)(authManager);
